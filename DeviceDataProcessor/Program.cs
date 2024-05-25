@@ -1,0 +1,1 @@
+﻿DataProcessor.CreateCommonDataFile().Wait();
