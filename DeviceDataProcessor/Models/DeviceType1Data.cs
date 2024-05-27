@@ -6,55 +6,54 @@ public class DeviceType1Data
     public string PartnerName { get; set; }
     public List<Tracker> Trackers { get; set; }
 
-    public DeviceCommonData ToDeviceCommonData()
+    public List<DeviceCommonData> ToDeviceCommonData()
     {
-        DeviceCommonData deviceCommonData = new DeviceCommonData
+        var allDeviceCommonData = new List<DeviceCommonData>();
+
+        if (Trackers == null || Trackers.Count == 0)
         {
-            CompanyId = PartnerId,
-            CompanyName = PartnerName
-        };
+            throw new Exception("No trackers found for the device type 1 data");
+        }
 
         foreach (Tracker tracker in Trackers)
         {
-            foreach (Sensor sensor in tracker.Sensors)
+            DeviceCommonData deviceCommonData = new DeviceCommonData
             {
-                foreach (Crumb crumb in sensor.Crumbs)
-                {
-                    if (deviceCommonData.FirstReadingDtm == null || crumb.CreatedDtm < deviceCommonData.FirstReadingDtm)
-                    {
-                        deviceCommonData.FirstReadingDtm = crumb.CreatedDtm;
-                    }
+                CompanyId = PartnerId,
+                CompanyName = PartnerName
+            };
 
-                    if (deviceCommonData.LastReadingDtm == null || crumb.CreatedDtm > deviceCommonData.LastReadingDtm)
-                    {
-                        deviceCommonData.LastReadingDtm = crumb.CreatedDtm;
-                    }
+            deviceCommonData.DeviceId = tracker.Id;
+            deviceCommonData.DeviceName = tracker.Model;
 
-                    if (sensor.Name == "Temperature")
-                    {
-                        deviceCommonData.TemperatureCount++;
-                        deviceCommonData.AverageTemperature += crumb.Value;
-                    }
-                    else if (sensor.Name == "Humidity")
-                    {
-                        deviceCommonData.HumidityCount++;
-                        deviceCommonData.AverageHumdity += crumb.Value;
-                    }
-                }
+            var allSensorData = tracker.Sensors.SelectMany(s => s.Crumbs).ToList();
+
+            if(allSensorData is null || allSensorData.Count == 0)
+            {
+                throw new Exception("No sensor data found for the device type 1 data");
             }
+
+            deviceCommonData.FirstReadingDtm = allSensorData.Min(c => c.CreatedDtm);
+            deviceCommonData.LastReadingDtm = allSensorData.Max(c => c.CreatedDtm);
+
+            var tempatures = tracker.Sensors.Where(s => s.Name == "Temperature").SelectMany(s => s.Crumbs).ToList();
+            if(tempatures is not null && tempatures.Count > 0)
+            {
+                deviceCommonData.TemperatureCount = tempatures.Count;
+                deviceCommonData.AverageTemperature = tempatures.Average(c => c.Value);
+            }
+
+            var humidities = tracker.Sensors.Where(s => s.Name == "Humidty").SelectMany(s => s.Crumbs).ToList();
+            if(humidities is not null && humidities.Count > 0)
+            {
+                deviceCommonData.HumidityCount = humidities.Count;
+                deviceCommonData.AverageHumdity = humidities.Average(c => c.Value);
+            }
+
+            allDeviceCommonData.Add(deviceCommonData);
         }
 
-        if (deviceCommonData.TemperatureCount > 0)
-        {
-            deviceCommonData.AverageTemperature /= deviceCommonData.TemperatureCount;
-        }
-
-        if (deviceCommonData.HumidityCount > 0)
-        {
-            deviceCommonData.AverageHumdity /= deviceCommonData.HumidityCount;
-        }
-
-        return deviceCommonData;
+        return allDeviceCommonData;
     }
 }
 
