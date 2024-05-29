@@ -6,14 +6,40 @@ public static class DataProcessor
 {
     private const string DeviceDataFoo1FilePath = "Data/DeviceDataFoo1.json";
     private const string DeviceDataFoo2FilePath = "Data/DeviceDataFoo2.json";
+    private const string OutputFilePath = "Data/CommonData.json";
+
     public static async Task CreateCommonDataFile()
     {
-        var commonData = new List<DeviceCommonData>();
-        commonData.AddRange(await ProcessDeviceType1Data());
-        commonData.AddRange(await ProcessDeviceType2Data());
+        var deviceFilePaths = new string[] { DeviceDataFoo1FilePath, DeviceDataFoo2FilePath };
+        var commonData = await ProcessDeviceData(deviceFilePaths);
 
+        await SerializeAndWriteCommonDataFile(commonData);
+    }
+
+    private static async Task<List<DeviceCommonData>> ProcessDeviceData(string[] files)
+    {
+        var commonData = new List<DeviceCommonData>();
+
+        foreach (var filePath in files)
+        {
+            switch (filePath)
+            {
+                case DeviceDataFoo1FilePath:
+                    commonData.AddRange(await ProcessDeviceType1Data());
+                    break;
+                case DeviceDataFoo2FilePath:
+                    commonData.AddRange(await ProcessDeviceType2Data());
+                    break;
+            }
+        }
+
+        return commonData;
+    }
+    
+    private static async Task SerializeAndWriteCommonDataFile(List<DeviceCommonData> commonData)
+    {
         var commonDataJson = JsonSerializer.Serialize(commonData);
-        await File.WriteAllTextAsync("Data/CommonData.json", commonDataJson);
+        await File.WriteAllTextAsync(OutputFilePath, commonDataJson);
     }
 
     public static async Task<List<DeviceCommonData>> ProcessDeviceType1Data()

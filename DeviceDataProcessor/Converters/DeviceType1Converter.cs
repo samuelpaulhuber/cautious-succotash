@@ -71,7 +71,7 @@ namespace DeviceDataProcessor.Converters
             if (tempatureData is not null && tempatureData.Count > 0)
             {
                 deviceCommonData.TemperatureCount = tempatureData.Count;
-                deviceCommonData.AverageTemperature = tempatureData.Average(c => c.Value);
+                deviceCommonData.AverageTemperature = Math.Round(tempatureData.Average(c => c.Value), 2);
             }
         }
 
@@ -87,7 +87,7 @@ namespace DeviceDataProcessor.Converters
             if (humidityData is not null && humidityData.Count > 0)
             {
                 deviceCommonData.HumidityCount = humidityData.Count;
-                deviceCommonData.AverageHumdity = humidityData.Average(c => c.Value);
+                deviceCommonData.AverageHumdity = Math.Round(humidityData.Average(c => c.Value), 2);
             }
         }
     }
