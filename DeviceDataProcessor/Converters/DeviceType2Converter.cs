@@ -4,6 +4,11 @@ namespace DeviceDataProcessor.Converters
 {
     public class DeviceType2Converter : IDataConverter<DeviceType2Data>
     {
+        /// <summary>
+        /// Converts device type 2 data to common data
+        /// </summary>
+        /// <param name="data">DeviceType2Data</param>
+        /// <returns>List<DeviceCommonData></returns>
         public List<DeviceCommonData> ToDeviceCommonData(DeviceType2Data data)
         {
             var allDeviceCommonData = new List<DeviceCommonData>();

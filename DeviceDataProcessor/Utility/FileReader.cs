@@ -1,6 +1,9 @@
 using DeviceDataProcessor.Utility;
 using System.Text.Json;
 
+/// <summary>
+/// Reads JSON file and deserializes it to the specified type
+/// </summary>
 public static class JsonFileReader
 {
     public static async Task<T?> ReadAsync<T>(string filePath)

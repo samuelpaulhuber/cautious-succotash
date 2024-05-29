@@ -8,6 +8,10 @@ public static class DataProcessor
     private const string DeviceDataFoo2FilePath = "Data/DeviceDataFoo2.json";
     private const string OutputFilePath = "Data/CommonData.json";
 
+    /// <summary>
+    /// Creates common data file from device data files
+    /// </summary>
+    /// <returns></returns>
     public static async Task CreateCommonDataFile()
     {
         var deviceFilePaths = new string[] { DeviceDataFoo1FilePath, DeviceDataFoo2FilePath };
@@ -42,6 +46,10 @@ public static class DataProcessor
         await File.WriteAllTextAsync(OutputFilePath, commonDataJson);
     }
 
+    /// <summary>
+    /// Converts device type 1 data to common data
+    /// </summary>
+    /// <returns>List<DeviceCommonData></DeviceCommonData></returns>
     public static async Task<List<DeviceCommonData>> ProcessDeviceType1Data()
     {
         var deviceType1Data = await DeserializeDeviceType1Data();
@@ -66,6 +74,10 @@ public static class DataProcessor
         return DeviceType1Converter.ToDeviceCommonData(data);
     }
 
+    /// <summary>
+    /// Converts device type 2 data to common data
+    /// </summary>
+    /// <returns>List<DeviceCommonData></returns>
     public static async Task<List<DeviceCommonData>> ProcessDeviceType2Data()
     {
         var deviceType2Data = await DeserializeDeviceType2Data();
