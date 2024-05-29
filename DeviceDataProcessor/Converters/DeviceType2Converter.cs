@@ -8,7 +8,31 @@ namespace DeviceDataProcessor.Converters
         {
             var allDeviceCommonData = new List<DeviceCommonData>();
             
-            if(data == null)
+            ValidateDataStructure(data);
+
+            foreach(var device in data.Devices)
+            {
+                ValidateSensorData(device.ReportedSensorData);
+                var deviceCommonData = InitializeCommonDataModel(data, device);
+
+                deviceCommonData.FirstReadingDtm = device.ReportedSensorData.Min(c => c.ReportedDate);
+                deviceCommonData.LastReadingDtm = device.ReportedSensorData.Max(c => c.ReportedDate);
+
+                var tempatures = GetDeviceTempatureData(device);
+                SetCommonDataTempatureValues(deviceCommonData, tempatures);
+
+                var humidities = GetDeviceHumidityData(device);
+                SetCommonDataHumidityValues(deviceCommonData, humidities);
+
+                allDeviceCommonData.Add(deviceCommonData);
+            }
+
+            return allDeviceCommonData;
+        }
+
+        private void ValidateDataStructure(DeviceType2Data data)
+        {
+            if (data == null)
             {
                 throw new Exception("No data found for the device type 2 data");
             }
@@ -17,44 +41,59 @@ namespace DeviceDataProcessor.Converters
             {
                 throw new Exception("No devices found for the device type 2 data");
             }
+        }
 
-            foreach(var device in data.Devices)
+        private void ValidateSensorData(List<SensorData> sensorData)
+        {
+            if (sensorData == null || sensorData.Count == 0)
             {
-                DeviceCommonData deviceCommonData = new DeviceCommonData
-                {
-                    CompanyId = data.CompanyId,
-                    CompanyName = data.Company
-                };
-
-                deviceCommonData.DeviceId = device.DeviceID;
-                deviceCommonData.DeviceName = device.Name;
-
-                if(device.ReportedSensorData == null || device.ReportedSensorData.Count == 0)
-                {
-                    throw new Exception("No sensor data found for the device type 2 data");
-                }
-
-                deviceCommonData.FirstReadingDtm = device.ReportedSensorData.Min(c => c.ReportedDate);
-                deviceCommonData.LastReadingDtm = device.ReportedSensorData.Max(c => c.ReportedDate);
-
-                var tempatures = device.ReportedSensorData.Where(s => s.SensorType == "TEMP").ToList();
-                if(tempatures is not null && tempatures.Count > 0)
-                {
-                    deviceCommonData.TemperatureCount = tempatures.Count;
-                    deviceCommonData.AverageTemperature = tempatures.Average(c => c.Value);
-                }
-
-                var humidities = device.ReportedSensorData.Where(s => s.SensorType == "HUM").ToList();
-                if (humidities is not null && humidities.Count > 0)
-                {
-                    deviceCommonData.HumidityCount = humidities.Count;
-                    deviceCommonData.AverageHumdity = humidities.Average(c => c.Value);
-                }
-
-                allDeviceCommonData.Add(deviceCommonData);
+                throw new Exception("No sensor data found for the device type 2 data");
             }
+        }
+        
+        private DeviceCommonData InitializeCommonDataModel(DeviceType2Data data, Device device)
+        {
+            DeviceCommonData deviceCommonData = new DeviceCommonData
+            {
+                CompanyId = data.CompanyId,
+                CompanyName = data.Company,
+                DeviceId = device.DeviceID,
+                DeviceName = device.Name
+            };
 
-            return allDeviceCommonData;
+            return deviceCommonData;
+        }
+
+        private List<SensorData>? GetDeviceTempatureData(Device device)
+        {
+            var tempatures = device.ReportedSensorData.Where(s => s.SensorType == "TEMP").ToList();
+
+            return tempatures;
+        }
+
+        private void SetCommonDataTempatureValues(DeviceCommonData deviceCommonData, List<SensorData>? tempatureData)
+        {
+            if (tempatureData is not null && tempatureData.Count > 0)
+            {
+                deviceCommonData.TemperatureCount = tempatureData.Count;
+                deviceCommonData.AverageTemperature = tempatureData.Average(c => c.Value);
+            }
+        }
+
+        private List<SensorData>? GetDeviceHumidityData(Device device)
+        {
+            var humidities = device.ReportedSensorData.Where(s => s.SensorType == "HUM").ToList();
+
+            return humidities;
+        }
+
+        private void SetCommonDataHumidityValues(DeviceCommonData deviceCommonData, List<SensorData>? humidityData)
+        {
+            if (humidityData is not null && humidityData.Count > 0)
+            {
+                deviceCommonData.HumidityCount = humidityData.Count;
+                deviceCommonData.AverageHumdity = humidityData.Average(c => c.Value);
+            }
         }
     }
 }
